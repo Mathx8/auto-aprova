@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { verificarOTP, reenviarOTP } from "@/services/api";
+import { verificarOTP, reenviarOTP, enviarEmailOTP } from "@/services/api";
+import { ApiError } from "@/types/Error";
 
 export default function VerificarOtpPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const email = searchParams.get("email");
+    const email = searchParams.get("email") || "";
+    const from = searchParams.get("from");
 
+    const jaEnviado = useRef(false);
     const [codigo, setCodigo] = useState("");
     const [erro, setErro] = useState("");
     const [mensagem, setMensagem] = useState("");
@@ -36,33 +39,100 @@ export default function VerificarOtpPage() {
         setErro("");
         setLoading(true);
 
-        const response = await verificarOTP({ email, codigo });
+        try {
+            const response = await verificarOTP({ email, codigo });
 
-        if (response.error) {
-            setErro(response.error);
-            setLoading(false);
-            return;
+            if (response.error) {
+                setErro(response.error);
+                setLoading(false);
+                return;
+            }
+
+            setMensagem("Conta verificada com sucesso! 🚀");
+
+            setTimeout(() => {
+                router.push("/login");
+            }, 1500);
+        } catch (err: unknown) {
+            const error = err as ApiError;
+            setErro(error.message || "Erro ao verificar código");
         }
 
-        setMensagem("Conta verificada com sucesso! 🚀");
-
-        setTimeout(() => {
-            router.push("/login");
-        }, 1500);
+        setLoading(false);
     }
 
+    useEffect(() => {
+        async function enviarAutomaticamente() {
+            if (jaEnviado.current) return;
+            jaEnviado.current = true;
+            
+            if (!email || from !== "cadastro") return;
+
+            try {
+                setLoading(true);
+
+                const response = await reenviarOTP({ email });
+
+                if (response.error) {
+                    setErro(response.error);
+                    return;
+                }
+
+                await enviarEmailOTP(
+                    response.email,
+                    response.nome,
+                    response.otp
+                );
+
+                setMensagem("Código enviado para seu email 📩");
+                setContador(60);
+            } catch (err: unknown) {
+                const error = err as ApiError;
+                setErro(error.message || "Erro ao enviar código");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        enviarAutomaticamente();
+    }, [email, from]);
+
     async function handleReenviar() {
+        const email = searchParams.get("email") || "";
         if (contador > 0) return;
 
-        await reenviarOTP({ email });
-        setContador(60);
+        setErro("");
+        setMensagem("");
+        setLoading(true);
+
+        try {
+            const response = await reenviarOTP({ email });
+
+            if (response.error) {
+                setErro(response.error);
+                return;
+            }
+
+            await enviarEmailOTP(
+                response.email,
+                response.nome,
+                response.otp
+            );
+
+            setMensagem("Novo código enviado com sucesso 📩");
+            setContador(60);
+        } catch (err: unknown) {
+            const error = err as ApiError;
+            setErro(error.message || "Erro ao reenviar código");
+        }
+
+        setLoading(false);
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black px-4">
             <div className="w-full max-w-md bg-zinc-900/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-zinc-800">
 
-                {/* Título */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-extrabold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
                         Verificação
@@ -76,7 +146,6 @@ export default function VerificarOtpPage() {
                 </div>
 
                 <form onSubmit={handleVerificar} className="space-y-5">
-
                     <input
                         type="text"
                         placeholder="Digite o código de 6 dígitos"
@@ -104,7 +173,6 @@ export default function VerificarOtpPage() {
                     </button>
                 </form>
 
-                {/* Reenviar */}
                 <div className="text-center mt-6 text-sm text-zinc-400">
                     {contador > 0 ? (
                         <p>Reenviar código em {contador}s</p>

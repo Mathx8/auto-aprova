@@ -37,7 +37,7 @@ export default function CadastroPage() {
             return;
         }
 
-        router.push(`/verificar-otp?email=${form.email}`);
+        router.push(`/verificar-otp?email=${form.email}&from=cadastro`);
     }
 
     const inputDark =
