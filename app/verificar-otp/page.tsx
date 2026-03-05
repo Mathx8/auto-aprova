@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { verificarOTP, reenviarOTP, enviarEmailOTP } from "@/services/api";
 import { ApiError } from "@/types/Error";
@@ -9,9 +9,7 @@ export default function VerificarOtpPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const email = searchParams.get("email") || "";
-    const from = searchParams.get("from");
 
-    const jaEnviado = useRef(false);
     const [codigo, setCodigo] = useState("");
     const [erro, setErro] = useState("");
     const [mensagem, setMensagem] = useState("");
@@ -61,42 +59,6 @@ export default function VerificarOtpPage() {
         setLoading(false);
     }
 
-    useEffect(() => {
-        async function enviarAutomaticamente() {
-            if (jaEnviado.current) return;
-            jaEnviado.current = true;
-            
-            if (!email || from !== "cadastro") return;
-
-            try {
-                setLoading(true);
-
-                const response = await reenviarOTP({ email });
-
-                if (response.error) {
-                    setErro(response.error);
-                    return;
-                }
-
-                await enviarEmailOTP(
-                    response.email,
-                    response.nome,
-                    response.otp
-                );
-
-                setMensagem("Código enviado para seu email 📩");
-                setContador(60);
-            } catch (err: unknown) {
-                const error = err as ApiError;
-                setErro(error.message || "Erro ao enviar código");
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        enviarAutomaticamente();
-    }, [email, from]);
-
     async function handleReenviar() {
         const email = searchParams.get("email") || "";
         if (contador > 0) return;
@@ -113,11 +75,7 @@ export default function VerificarOtpPage() {
                 return;
             }
 
-            await enviarEmailOTP(
-                response.email,
-                response.nome,
-                response.otp
-            );
+            await enviarEmailOTP(response.email,response.otp);
 
             setMensagem("Novo código enviado com sucesso 📩");
             setContador(60);

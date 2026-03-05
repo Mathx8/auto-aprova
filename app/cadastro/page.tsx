@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cadastro } from "@/services/api";
+import { cadastro, enviarEmailOTP } from "@/services/api";
 
 export default function CadastroPage() {
     const router = useRouter();
@@ -36,6 +36,8 @@ export default function CadastroPage() {
             setLoading(false);
             return;
         }
+
+        await enviarEmailOTP(response.email, response.otp);
 
         router.push(`/verificar-otp?email=${form.email}&from=cadastro`);
     }

@@ -67,13 +67,12 @@ export const reenviarOTP = async (data: ReenviarOTP) => {
     };
 };
 
-export async function enviarEmailOTP(email: string, nome: string, otp: string) {
+export async function enviarEmailOTP(email: string, otp: string) {
     return emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
         {
             to_email: email,
-            to_name: nome,
             otp: otp,
             app_name: "AutoAprova",
             expiration_time: "5 minutos",
