@@ -1,23 +1,26 @@
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header({ nome, tipo }: { nome: string; tipo: string }) {
     const router = useRouter();
     const [menuAberto, setMenuAberto] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        function handleClickOutside() {
-            setMenuAberto(false);
+        function handleClickOutside(e: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setMenuAberto(false);
+            }
         }
 
-        if (menuAberto) {
-            document.addEventListener("click", handleClickOutside);
-        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
-        return () => {
-            document.removeEventListener("click", handleClickOutside);
-        };
-    }, [menuAberto]);
+    function handlePerfil() {
+        router.push("/perfil");
+    }
 
     function handleLogout() {
         localStorage.removeItem("auth");
@@ -25,44 +28,65 @@ export default function Header({ nome, tipo }: { nome: string; tipo: string }) {
     }
 
     return (
-        <header className="w-full bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center">
-
+        <header className="sticky top-0 z-50 w-full backdrop-blur bg-zinc-900/70 border-b border-zinc-800 px-6 py-4 flex justify-between items-center shadow-lg">
             {/* Logo */}
-            <h1 className="text-2xl font-extrabold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
+            <button
+                onClick={() => router.push("/dashboard")}
+                className="text-2xl font-extrabold bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 bg-clip-text text-transparent hover:scale-105 transition"
+            >
                 AutoAprova
-            </h1>
+            </button>
 
-            {/* User Info */}
+            {/* User */}
             <div className="flex items-center gap-4">
-
-                <div className="text-right">
-                    <p className="font-semibold">{nome}</p>
-                    <p className="text-sm text-zinc-400 capitalize">
-                        {tipo}
-                    </p>
+                {/* Info */}
+                <div className="text-right hidden sm:block">
+                    <p className="font-semibold text-white">{nome}</p>
+                    <p className="text-xs text-zinc-400 capitalize">{tipo}</p>
                 </div>
 
                 {/* Avatar */}
-                <div className="relative">
-                    <div
+                <div className="relative" ref={menuRef}>
+                    <motion.div
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => setMenuAberto(!menuAberto)}
-                        className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-yellow-400 flex items-center justify-center font-bold text-black cursor-pointer hover:scale-105 transition"
+                        className="w-11 h-11 rounded-full bg-gradient-to-r from-orange-500 to-yellow-400 flex items-center justify-center font-bold text-black cursor-pointer shadow-md hover:shadow-lg transition"
                     >
                         {nome?.charAt(0)}
-                    </div>
+                    </motion.div>
 
-                    {menuAberto && (
-                        <div className="absolute right-0 mt-3 w-40 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden animate-fadeIn">
-                            <button
-                                onClick={handleLogout}
-                                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-zinc-800 transition"
+                    {/* Dropdown */}
+                    <AnimatePresence>
+                        {menuAberto && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="absolute right-0 mt-3 w-48 bg-zinc-900/95 backdrop-blur border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
                             >
-                                Sair
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                <div className="px-4 py-3 border-b border-zinc-800">
+                                    <p className="text-sm font-semibold">{nome}</p>
+                                    <p className="text-xs text-zinc-400 capitalize">{tipo}</p>
+                                </div>
 
+                                <button
+                                    onClick={handlePerfil}
+                                    className="w-full text-left px-4 py-3 text-sm hover:bg-zinc-800 transition"
+                                >
+                                    👤 Meu Perfil
+                                </button>
+
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-zinc-800 transition"
+                                >
+                                    🚪 Sair
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </header>
     );

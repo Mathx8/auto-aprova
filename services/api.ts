@@ -1,4 +1,6 @@
-import { ReenviarOTP, UsuarioCadastro, UsuarioLogin, ValidarOTP } from "@/types/Usuario";
+import { AlunoEdicao } from "@/types/Aluno";
+import { ProfessorEdicao } from "@/types/Professor";
+import { ReenviarOTP, UsuarioCadastro, UsuarioLogin, ValidarOTP, UsuarioEdicao, UsuarioLocalizao } from "@/types/Usuario";
 import emailjs from "@emailjs/browser";
 
 const API = "https://api-autoaprova.onrender.com";
@@ -79,4 +81,78 @@ export async function enviarEmailOTP(email: string, otp: string) {
         },
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
     );
+}
+
+export async function getPerfil(id: string) {
+    try {
+        const response = await fetch(`${API}/usuarios/${id}/perfil`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+export async function atualizarPerfil(data: UsuarioEdicao) {
+    try {
+        const response = await fetch(`${API}/usuarios`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+export async function adicionarLocalizacao(data: UsuarioLocalizao) {
+    try {
+        const response = await fetch(`${API}/usuarios/localizacao`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+export async function atualizarAluno(data: AlunoEdicao) {
+    try {
+        const response = await fetch(`${API}/alunos`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+export async function atualizarProfessor(data: ProfessorEdicao) {
+    try {
+        const response = await fetch(`${API}/professores`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
 }
