@@ -1,4 +1,5 @@
 import { AlunoEdicao } from "@/types/Aluno";
+import { CarroEdicao } from "@/types/Carro";
 import { ProfessorEdicao } from "@/types/Professor";
 import { ReenviarOTP, UsuarioCadastro, UsuarioLogin, ValidarOTP, UsuarioEdicao, UsuarioLocalizao } from "@/types/Usuario";
 import emailjs from "@emailjs/browser";
@@ -98,6 +99,21 @@ export async function getPerfil(id: string) {
     }
 }
 
+export async function getCarro(usuario_id: string) {
+    try {
+        const response = await fetch(`${API}/usuarios/${usuario_id}/carros`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
 export async function atualizarPerfil(data: UsuarioEdicao) {
     try {
         const response = await fetch(`${API}/usuarios`, {
@@ -116,6 +132,21 @@ export async function atualizarPerfil(data: UsuarioEdicao) {
 export async function adicionarLocalizacao(data: UsuarioLocalizao) {
     try {
         const response = await fetch(`${API}/usuarios/localizacao`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+export async function adicionarCarro(data: CarroEdicao) {
+    try {
+        const response = await fetch(`${API}/carros`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -39,12 +39,6 @@ export default function Header({ nome, tipo }: { nome: string; tipo: string }) {
 
             {/* User */}
             <div className="flex items-center gap-4">
-                {/* Info */}
-                <div className="text-right hidden sm:block">
-                    <p className="font-semibold text-white">{nome}</p>
-                    <p className="text-xs text-zinc-400 capitalize">{tipo}</p>
-                </div>
-
                 {/* Avatar */}
                 <div className="relative" ref={menuRef}>
                     <motion.div
@@ -66,7 +60,7 @@ export default function Header({ nome, tipo }: { nome: string; tipo: string }) {
                                 className="absolute right-0 mt-3 w-48 bg-zinc-900/95 backdrop-blur border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
                             >
                                 <div className="px-4 py-3 border-b border-zinc-800">
-                                    <p className="text-sm font-semibold">{nome}</p>
+                                    <p className="text-sm font-semibold">{nome.slice(0, 20)}</p>
                                     <p className="text-xs text-zinc-400 capitalize">{tipo}</p>
                                 </div>
 
@@ -74,14 +68,14 @@ export default function Header({ nome, tipo }: { nome: string; tipo: string }) {
                                     onClick={handlePerfil}
                                     className="w-full text-left px-4 py-3 text-sm hover:bg-zinc-800 transition"
                                 >
-                                    👤 Meu Perfil
+                                    Minha conta
                                 </button>
 
                                 <button
                                     onClick={handleLogout}
                                     className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-zinc-800 transition"
                                 >
-                                    🚪 Sair
+                                    Sair
                                 </button>
                             </motion.div>
                         )}

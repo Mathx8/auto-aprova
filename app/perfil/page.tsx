@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/header";
-import { getPerfil, atualizarPerfil, atualizarAluno, atualizarProfessor, adicionarLocalizacao } from "@/services/api";
+import { getPerfil, atualizarPerfil, atualizarAluno, atualizarProfessor, adicionarLocalizacao, adicionarCarro, getCarro } from "@/services/api";
 import { Perfil } from "@/types/Usuario";
 import { motion } from "framer-motion";
+import { Carro } from "@/types/Carro";
 
 // Tipos auxiliares
 
@@ -15,6 +16,7 @@ export default function PerfilPage() {
     const router = useRouter();
 
     const [usuario, setUsuario] = useState<Perfil | null>(null);
+    const [carros, setCarros] = useState<Carro[]>([]);
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
     const [form, setForm] = useState<FormPerfil | null>(null);
@@ -30,8 +32,10 @@ export default function PerfilPage() {
             if (!authParsed?.user?.id) return router.push("/login");
 
             const data = await getPerfil(authParsed.user.id);
+            const carros = await getCarro(authParsed.user.id);
 
             setUsuario(data);
+            setCarros(carros || []);
             setForm(data);
             setLoading(false);
         };
@@ -73,6 +77,18 @@ export default function PerfilPage() {
                 cidade: form.localizacao.cidade,
                 estado: form.localizacao.estado,
             });
+
+            for (const carro of carros) {
+                await adicionarCarro({
+                    usuario_id: form.id,
+                    marca: carro.marca,
+                    modelo: carro.modelo,
+                    ano: Number(carro.ano),
+                    cambio: carro.cambio,
+                    cor: carro.cor,
+                    placa: carro.placa,
+                });
+            }
 
             if (form.tipo === "aluno") {
                 await atualizarAluno({
@@ -230,6 +246,142 @@ export default function PerfilPage() {
                     </div>
                 )}
 
+                {/* CARROS */}
+                <div className="card">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="title">Carros</h3>
+
+                        {editMode && (
+                            <button
+                                onClick={() =>
+                                    setCarros([
+                                        ...carros,
+                                        {
+                                            id: form.id,
+                                            marca: "",
+                                            modelo: "",
+                                            ano: new Date().getFullYear(),
+                                            cambio: "manual",
+                                            cor: "",
+                                            placa: "",
+                                        },
+                                    ])
+                                }
+                                className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-sm"
+                            >
+                                + Adicionar
+                            </button>
+                        )}
+                    </div>
+
+                    {carros.length === 0 && (
+                        <p className="text-zinc-400">Nenhum carro cadastrado</p>
+                    )}
+
+                                    <div className="grid md:grid-cols-2 gap-6">
+                        {carros.map((carro, index) => (
+                            <div
+                                key={index}
+                                className="border border-zinc-800 rounded-xl p-4 space-y-3"
+                            >
+                                {editMode && (
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={() =>
+                                                setCarros(carros.filter((_, i) => i !== index))
+                                            }
+                                            className="text-red-400 text-sm"
+                                        >
+                                            Remover
+                                        </button>
+                                    </div>
+                                )}
+
+                                <Input
+                                    label="Marca"
+                                    name="marca"
+                                    value={carro.marca}
+                                    onChange={(e) => {
+                                        const newCarros = [...carros];
+                                        newCarros[index].marca = e.target.value;
+                                        setCarros(newCarros);
+                                    }}
+                                    editMode={editMode}
+                                />
+
+                                <Input
+                                    label="Modelo"
+                                    name="modelo"
+                                    value={carro.modelo}
+                                    onChange={(e) => {
+                                        const newCarros = [...carros];
+                                        newCarros[index].modelo = e.target.value;
+                                        setCarros(newCarros);
+                                    }}
+                                    editMode={editMode}
+                                />
+
+                                <Input
+                                    label="Ano"
+                                    name="ano"
+                                    value={carro.ano}
+                                    onChange={(e) => {
+                                        const newCarros = [...carros];
+                                        newCarros[index].ano = Number(e.target.value);
+                                        setCarros(newCarros);
+                                    }}
+                                    editMode={editMode}
+                                />
+
+                                <div>
+                                    <label className="text-sm text-zinc-400">Câmbio</label>
+                                    {editMode ? (
+                                        <select
+                                            value={carro.cambio}
+                                            onChange={(e) => {
+                                                const newCarros = [...carros];
+                                                newCarros[index].cambio =
+                                                    e.target.value as "manual" | "automatico";
+                                                setCarros(newCarros);
+                                            }}
+                                            className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2"
+                                        >
+                                            <option value="manual">Manual</option>
+                                            <option value="automatico">Automático</option>
+                                        </select>
+                                    ) : (
+                                        <p className="text-zinc-200">{carro.cambio}</p>
+                                    )}
+                                </div>
+
+                                <Input
+                                    label="Cor"
+                                    name="cor"
+                                    value={carro.cor}
+                                    onChange={(e) => {
+                                        const newCarros = [...carros];
+                                        newCarros[index].cor = e.target.value;
+                                        setCarros(newCarros);
+                                    }}
+                                    editMode={editMode}
+                                />
+
+                                <Input
+                                    label="Placa"
+                                    name="placa"
+                                    value={carro.placa}
+                                    onChange={(e) => {
+                                        const newCarros = [...carros];
+                                        newCarros[index].placa = e.target.value;
+                                        setCarros(newCarros);
+                                    }}
+                                    editMode={editMode}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 {/* SAVE */}
                 {editMode && (
                     <div className="flex justify-end">
@@ -256,7 +408,7 @@ function formatDateToBR(date: string) {
 type InputProps = {
     label: string;
     name: string;
-    value?: string;
+    value?: string | number;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     editMode: boolean;
 };
