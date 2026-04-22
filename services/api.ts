@@ -235,6 +235,21 @@ export async function atualizarProfessor(data: ProfessorEdicao) {
     }
 }
 
+export async function getProfessoresPorEstado(estado: string) {
+    try {
+        const response = await fetch(`${API}/alunos/professores/localizacao/${estado}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
 export async function getAulasPorAluno(aluno_id: string) {
     try {
         const response = await fetch(`${API}/alunos/${aluno_id}/aulas`, {

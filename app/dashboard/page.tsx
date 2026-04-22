@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/header";
-import { getAulasPorProfessor } from "@/services/api";
+import { getAulasPorProfessor, getProfessoresPorEstado } from "@/services/api";
 import { Aulas } from "@/types/Aulas";
 
 interface Usuario {
@@ -12,6 +12,38 @@ interface Usuario {
 }
 
 function DashboardAluno() {
+    const [professores, setProfessores] = useState<any[]>([]);
+    const [busca, setBusca] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadProfessores = async () => {
+            const authStorage = localStorage.getItem("auth");
+            if (!authStorage) return;
+
+            const authParsed = JSON.parse(authStorage);
+
+            const estado = authParsed?.user?.localizacao?.estado || "SP";
+
+            const data = await getProfessoresPorEstado(estado);
+
+            setProfessores(data || []);
+            setLoading(false);
+        };
+
+        loadProfessores();
+    }, []);
+
+    const professoresFiltrados = professores.filter((p) =>
+        p.usuarios?.localizacao?.cidade
+            ?.toLowerCase()
+            .includes(busca.toLowerCase())
+    );
+
+    if (loading) {
+        return <p>Carregando professores...</p>;
+    }
+
     return (
         <main className="p-8 space-y-6">
 
@@ -19,22 +51,42 @@ function DashboardAluno() {
 
             {/* BUSCA */}
             <input
-                placeholder="Buscar por cidade..."
+                placeholder="Buscar por estado..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
                 className="w-full p-3 rounded-xl bg-zinc-800 border border-zinc-700"
             />
 
             {/* LISTA */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-                <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-                    <h3 className="font-semibold">João Instrutor</h3>
-                    <p className="text-sm text-zinc-400">São Paulo - SP</p>
-                    <p className="text-sm mt-2">Carro: HB20 2022</p>
+                {professoresFiltrados.map((prof) => (
+                    <div
+                        key={prof.id}
+                        className="bg-zinc-900 p-4 rounded-xl border border-zinc-800"
+                    >
+                        <h3 className="font-semibold">
+                            {prof.usuarios?.nome}
+                        </h3>
 
-                    <button className="mt-3 w-full bg-orange-400 text-black py-2 rounded-lg">
-                        Agendar Aula
-                    </button>
-                </div>
+                        <p className="text-sm text-zinc-400">
+                            {prof.usuarios?.localizacao?.cidade} -{" "}
+                            {prof.usuarios?.localizacao?.estado}
+                        </p>
+
+                        <p className="text-sm mt-2">
+                            CNH: {prof.cnh?.categoria || "Não informado"}
+                        </p>
+
+                        <button className="mt-3 w-full bg-orange-400 text-black py-2 rounded-lg cursor-pointer">
+                            Agendar Aula
+                        </button>
+                    </div>
+                ))}
+
+                {professoresFiltrados.length === 0 && (
+                    <p>Nenhum professor encontrado.</p>
+                )}
 
             </div>
 
