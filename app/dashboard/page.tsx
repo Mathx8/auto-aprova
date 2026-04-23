@@ -68,7 +68,13 @@ function DashboardAluno({ usuario }: { usuario: Usuario }) {
             const professoresData = await getProfessoresPorEstado(estado);
             const aulasData = await getAulasPorAluno(usuario.tipo_id);
 
-            setProfessores(professoresData || []);
+            const professoresValidos = (professoresData || []).filter(
+                (prof: Professor) =>
+                    prof.usuarios?.localizacao?.cidade &&
+                    prof.usuarios?.localizacao?.estado
+            );
+
+            setProfessores(professoresValidos);
             setAulas(aulasData || []);
             setLoading(false);
         };
@@ -150,7 +156,7 @@ function DashboardAluno({ usuario }: { usuario: Usuario }) {
                                 </h3>
 
                                 <p className="text-sm text-zinc-400">
-                                    {prof.usuarios.localizacao.cidade} - {prof.usuarios.localizacao.estado}
+                                    {prof.usuarios.localizacao?.cidade} - {prof.usuarios.localizacao?.estado}
                                 </p>
 
                                 <p className="text-sm mt-2">
