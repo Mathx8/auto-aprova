@@ -279,3 +279,33 @@ export async function getAulasPorProfessor(professor_id: string) {
         console.error("Error:", error);
     }
 }
+
+export async function agendarAula(aluno_id: string, professor_id: string, data: string) {
+    try {
+        const response = await fetch(`${API}/aulas`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ aluno_id, professor_id, data }),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}
+
+export async function statusAula(aula_id: string, status: "aceito" | "recusado" | "concluido") {
+    try {
+        const response = await fetch(`${API}/aulas/status`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ aula_id, status }),
+        });
+        return response.json();
+    } catch (error) {
+        console.error("Error:", error);
+    }
+}

@@ -77,6 +77,7 @@ type DetalhesProfessor = {
 export type Perfil =
     | {
         id: string;
+        tipo_id: string;
         nome: string;
         email: string;
         telefone: string;
@@ -87,6 +88,7 @@ export type Perfil =
     }
     | {
         id: string;
+        tipo_id: string;
         nome: string;
         email: string;
         telefone: string;

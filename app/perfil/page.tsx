@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/header";
-import { getPerfil, atualizarPerfil, atualizarAluno, atualizarProfessor, adicionarLocalizacao, adicionarCarro, getCarro } from "@/services/api";
+import { getPerfil, atualizarPerfil, atualizarAluno, atualizarProfessor, adicionarLocalizacao, adicionarCarro, getCarro, adicionarCNH } from "@/services/api";
 import { Perfil } from "@/types/Usuario";
 import { motion } from "framer-motion";
 import { Carro } from "@/types/Carro";
@@ -61,6 +61,11 @@ export default function PerfilPage() {
     };
 
     const handleSave = async () => {
+        const authStorage = localStorage.getItem("auth");
+        if (!authStorage) return;
+
+        const authParsed = JSON.parse(authStorage);
+        const tipo_id = authParsed.user.tipo_id;
         if (!form) return;
 
         try {
@@ -103,6 +108,16 @@ export default function PerfilPage() {
                     usuario_id: form.id,
                     descricao: form.detalhes.descricao,
                 });
+
+                if (form.detalhes.cnh?.numero) {
+                    await adicionarCNH({
+                        professor_id: tipo_id,
+                        numero: form.detalhes.cnh.numero,
+                        categoria: form.detalhes.cnh.categoria,
+                        data_emissao: form.detalhes.cnh.data_emissao,
+                        data_validade: form.detalhes.cnh.data_validade,
+                    });
+                }
             }
 
             setUsuario(form);
@@ -228,7 +243,7 @@ export default function PerfilPage() {
                 )}
 
                 {form.tipo === "professor" && (
-                    <div className="card">
+                    <div className="card space-y-4">
                         <h3 className="title">Dados do Professor</h3>
 
                         <Input
@@ -243,6 +258,119 @@ export default function PerfilPage() {
                             }
                             editMode={editMode}
                         />
+
+                        {/* CNH */}
+                        <div className="border-t border-zinc-800 pt-4 space-y-3">
+                            <h4 className="text-sm font-semibold text-zinc-400">CNH</h4>
+
+                            <Input
+                                label="Número"
+                                name="numero"
+                                value={form.detalhes.cnh?.numero}
+                                onChange={(e) =>
+                                    setForm({
+                                        ...form,
+                                        detalhes: {
+                                            ...form.detalhes,
+                                            cnh: {
+                                                ...form.detalhes.cnh,
+                                                numero: e.target.value,
+                                            },
+                                        },
+                                    })
+                                }
+                                editMode={editMode}
+                            />
+
+                            <div>
+                                <label className="text-sm text-zinc-400">Categoria</label>
+                                {editMode ? (
+                                    <select
+                                        value={form.detalhes.cnh?.categoria || ""}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                detalhes: {
+                                                    ...form.detalhes,
+                                                    cnh: {
+                                                        ...form.detalhes.cnh,
+                                                        categoria: e.target.value,
+                                                    },
+                                                },
+                                            })
+                                        }
+                                        className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2"
+                                    >
+                                        <option value="">Selecione</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                        <option value="E">E</option>
+                                        <option value="AB">AB</option>
+                                    </select>
+                                ) : (
+                                    <p className="text-zinc-200">
+                                        {form.detalhes.cnh?.categoria || "Não informado"}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Datas */}
+                            <div>
+                                <label className="text-sm text-zinc-400">Data de Emissão</label>
+                                {editMode ? (
+                                    <input
+                                        type="date"
+                                        value={form.detalhes.cnh?.data_emissao || ""}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                detalhes: {
+                                                    ...form.detalhes,
+                                                    cnh: {
+                                                        ...form.detalhes.cnh,
+                                                        data_emissao: e.target.value,
+                                                    },
+                                                },
+                                            })
+                                        }
+                                        className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2"
+                                    />
+                                ) : (
+                                    <p className="text-zinc-200">
+                                        {formatDateToBR(form.detalhes.cnh?.data_emissao)}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="text-sm text-zinc-400">Validade</label>
+                                {editMode ? (
+                                    <input
+                                        type="date"
+                                        value={form.detalhes.cnh?.data_validade || ""}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                detalhes: {
+                                                    ...form.detalhes,
+                                                    cnh: {
+                                                        ...form.detalhes.cnh,
+                                                        data_validade: e.target.value,
+                                                    },
+                                                },
+                                            })
+                                        }
+                                        className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2"
+                                    />
+                                ) : (
+                                    <p className="text-zinc-200">
+                                        {formatDateToBR(form.detalhes.cnh?.data_validade)}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -278,7 +406,7 @@ export default function PerfilPage() {
                         <p className="text-zinc-400">Nenhum carro cadastrado</p>
                     )}
 
-                                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-6">
                         {carros.map((carro, index) => (
                             <div
                                 key={index}
