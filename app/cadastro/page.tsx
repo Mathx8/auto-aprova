@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { cadastro, enviarEmailOTP } from "@/services/api";
 
 export default function CadastroPage() {
@@ -83,9 +84,12 @@ export default function CadastroPage() {
 
                 <p className="text-center text-sm text-zinc-400 mt-6">
                     Já tem conta?{" "}
-                    <a href="/login" className="text-orange-400 hover:text-yellow-400 transition">
+                    <Link
+                        href="/login"
+                        className="text-orange-400 hover:text-yellow-400 transition"
+                    >
                         Entrar
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>

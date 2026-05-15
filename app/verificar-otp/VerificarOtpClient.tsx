@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { verificarOTP, reenviarOTP, enviarEmailOTP } from "@/services/api";
 import { ApiError } from "@/types/Error";
 
-export default function VerificarOtpClient({ email }: { email: string }) {
+export default function VerificarOtpClient() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email") || "";
 
     const [codigo, setCodigo] = useState("");
     const [erro, setErro] = useState("");

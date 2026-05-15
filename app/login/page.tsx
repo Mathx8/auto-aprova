@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { login } from "@/services/api";
 
 export default function LoginPage() {
@@ -94,9 +95,12 @@ export default function LoginPage() {
 
                 <p className="text-center text-sm text-zinc-400 mt-6">
                     Não tem conta?{" "}
-                    <a href="/cadastro" className="text-orange-400 hover:text-yellow-400 transition">
+                    <Link
+                        href="/cadastro"
+                        className="text-orange-400 hover:text-yellow-400 transition"
+                    >
                         Cadastre-se
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>
